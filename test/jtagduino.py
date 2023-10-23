@@ -65,25 +65,23 @@ class jtagduino:
     def if_ver(self):
         self.ser.write(chr(jtagduino_cmd.CMD_IF_VER))
         rsp = ord(self.ser.read(1))
-        if (rsp == jtagduino_rsp.RSP_OK):
-            if_ver_minor = ord(self.ser.read(1))
-            if_ver_minor = if_ver_minor + (ord(self.ser.read(1)) * 256)
-            if_ver_major = ord(self.ser.read(1))
-            if_ver_major = if_ver_major + (ord(self.ser.read(1)) * 256)
-            return (if_ver_major, if_ver_minor)
-        else:
+        if rsp != jtagduino_rsp.RSP_OK:
             return None
+        if_ver_minor = ord(self.ser.read(1))
+        if_ver_minor += ord(self.ser.read(1)) * 256
+        if_ver_major = ord(self.ser.read(1))
+        if_ver_major += ord(self.ser.read(1)) * 256
+        return (if_ver_major, if_ver_minor)
     def fw_ver(self):
         self.ser.write(chr(jtagduino_cmd.CMD_FW_VER))
         rsp = ord(self.ser.read(1))
-        if (rsp == jtagduino_rsp.RSP_OK):
-            fw_ver_minor = ord(self.ser.read(1))
-            fw_ver_minor = fw_ver_minor + (ord(self.ser.read(1)) * 256)
-            fw_ver_major = ord(self.ser.read(1))
-            fw_ver_major = fw_ver_major + (ord(self.ser.read(1)) * 256)
-            return (fw_ver_major, fw_ver_minor)
-        else:
+        if rsp != jtagduino_rsp.RSP_OK:
             return None
+        fw_ver_minor = ord(self.ser.read(1))
+        fw_ver_minor += ord(self.ser.read(1)) * 256
+        fw_ver_major = ord(self.ser.read(1))
+        fw_ver_major += ord(self.ser.read(1)) * 256
+        return (fw_ver_major, fw_ver_minor)
     def set_serial_speed(self, baud):
         self.ser.write(chr(jtagduino_cmd.CMD_SET_SERIAL_SPEED))
         self.ser.write(chr((baud >>  0) & 0xFF))
@@ -98,61 +96,49 @@ class jtagduino:
     def set_pin(self, pin):
         self.ser.write(chr(jtagduino_cmd.CMD_SET_PIN))
         self.ser.write(chr(pin))
-        rsp = ord(self.ser.read(1))
-        return rsp
+        return ord(self.ser.read(1))
     def clear_pin(self, pin):
         self.ser.write(chr(jtagduino_cmd.CMD_CLEAR_PIN))
         self.ser.write(chr(pin))
-        rsp = ord(self.ser.read(1))
-        return rsp
+        return ord(self.ser.read(1))
     def get_pin(self, pin):
         self.ser.write(chr(jtagduino_cmd.CMD_GET_PIN))
         self.ser.write(chr(pin))
         rsp = ord(self.ser.read(1))
-        if (rsp == jtagduino_rsp.RSP_OK):
-            val = ord(self.ser.read(1))
-        else:
-            val = 0
+        val = ord(self.ser.read(1)) if (rsp == jtagduino_rsp.RSP_OK) else 0
         return (rsp, val)
     def pulse_high(self, pin, micros):
         self.ser.write(chr(jtagduino_cmd.CMD_PULSE_HIGH))
         self.ser.write(chr(pin))
         self.ser.write(chr((micros >> 0) & 0xFF))
         self.ser.write(chr((micros >> 8) & 0xFF))
-        rsp = ord(self.ser.read(1))
-        return rsp
+        return ord(self.ser.read(1))
     def pulse_low(self, pin, micros):
         self.ser.write(chr(jtagduino_cmd.CMD_PULSE_LOW))
         self.ser.write(chr(pin))
         self.ser.write(chr((micros >> 0) & 0xFF))
         self.ser.write(chr((micros >> 8) & 0xFF))
-        rsp = ord(self.ser.read(1))
-        return rsp
+        return ord(self.ser.read(1))
     def assign_pin(self, jtag_pin, arduino_pin):
         self.ser.write(chr(jtagduino_cmd.CMD_ASSIGN_PIN))
         self.ser.write(chr(jtag_pin))
         self.ser.write(chr(arduino_pin))
-        rsp = ord(self.ser.read(1))
-        return rsp
+        return ord(self.ser.read(1))
     def set_jtag_speed(self, khz):
         self.ser.write(chr(jtagduino_cmd.CMD_SET_JTAG_SPEED))
         self.ser.write(chr((khz >> 0) & 0xFF))
         self.ser.write(chr((khz >> 8) & 0xFF))
-        rsp = ord(self.ser.read(1))
-        return rsp
+        return ord(self.ser.read(1))
     def jtag_clock(self, tms, tdi):
         self.ser.write(chr(jtagduino_cmd.CMD_JTAG_CLOCK))
         jtag_in = 0
         if tms:
-            jtag_in = jtag_in | 1
+            jtag_in |= 1
         if tdi:
-            jtag_in = jtag_in | 2
+            jtag_in |= 2
         self.ser.write(chr(jtag_in))
         rsp = ord(self.ser.read(1))
-        if (rsp == jtagduino_rsp.RSP_OK):
-            tdo = ord(self.ser.read(1))
-        else:
-            tdo = 0
+        tdo = ord(self.ser.read(1)) if (rsp == jtagduino_rsp.RSP_OK) else 0
         return (rsp, tdo)
     def jtag_sequence(self, tms_seq, tdi_seq):
         if len(tms_seq) != len(tdi_seq):
